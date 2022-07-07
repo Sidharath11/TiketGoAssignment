@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"log"
 	"strconv"
 	"time"
 	"university/domain"
@@ -21,7 +22,7 @@ func Create(info *dto.UniversityInfo) (*dto.UniversityInfo, *utils.RestErr) {
 		"web_page":      info.Web_page,
 	})
 	if err != nil {
-		restErr := utils.InternalErr("can't insert hotelinfo to the database")
+		restErr := utils.InternalErr("can't insert universityinfo to the database")
 		return nil, restErr
 	}
 	info.ID = result.InsertedID.(primitive.ObjectID)
@@ -40,6 +41,42 @@ func Find(university_id int) (*dto.UniversityInfo, *utils.RestErr) {
 	}
 
 	return &info, nil
+}
+
+func FindAll() ([]*dto.UniversityInfo, *utils.RestErr) {
+	var info []*dto.UniversityInfo
+	universityC := domain.Db.Collection("UniveristyInfo")
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*20)
+
+	//Passing the bson.D{{}} as the filter matches  documents in the collection
+	cur, err := universityC.Find(ctx, bson.D{{}})
+	if err != nil {
+		restErr := utils.NotFound("university data not found")
+		return nil, restErr
+	}
+	//Finding multiple documents returns a cursor
+	//Iterate through the cursor allows us to decode documents one at a time
+
+	for cur.Next(ctx) {
+		//Create a value into which the single document can be decoded
+		var elem dto.UniversityInfo
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		info = append(info, &elem)
+
+	}
+
+	if err := cur.Err(); err != nil {
+		restErr := utils.NotFound("university data found but error while retrieving")
+		return nil, restErr
+	}
+
+	cur.Close(ctx)
+
+	return info, nil
 }
 
 func Delete(university_id int) *utils.RestErr {
@@ -65,7 +102,7 @@ func Update(info *dto.UniversityInfo) (*dto.UniversityInfo, *utils.RestErr) {
 	}, bson.M{"$set": bson.M{"domain": info.Domain,
 		"web_page": info.Web_page}})
 	if err != nil {
-		restErr := utils.InternalErr("can't update hotelinfo to the database")
+		restErr := utils.InternalErr("can't update universiy info to the database")
 		return nil, restErr
 	}
 	if result.MatchedCount == 0 {

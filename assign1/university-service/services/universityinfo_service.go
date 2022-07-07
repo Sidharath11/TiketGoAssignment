@@ -24,6 +24,15 @@ func FindUniversityInfo(universityid int) (*dto.UniversityInfo, *utils.RestErr) 
 	return info, nil
 }
 
+func FindAllUniversityInfo(universityid int) (*dto.UniversityInfo, *utils.RestErr) {
+	info, restErr := dao.Find(universityid)
+	if restErr != nil {
+		return nil, restErr
+
+	}
+	return info, nil
+}
+
 func DeleteUniversityInfo(universityid int) *utils.RestErr {
 	restErr := dao.Delete(universityid)
 	if restErr != nil {

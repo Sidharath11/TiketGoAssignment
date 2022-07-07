@@ -13,5 +13,7 @@ var (
 func StartApp() {
 	MapUrls()
 	domain.ConnMongoDB()
+	domain.ConnPostgress()
+	domain.RedisCli()
 	router.Run(":8080")
 }
